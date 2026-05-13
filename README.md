@@ -1,5 +1,4 @@
 # OMAKASE
-![IMAGEN OMAKASE](https://alba-cr-exa.cdn.mediatiquepress.com/wp-content/uploads/2026/05/imagen-3.jpg)
 
 - PRODUCT OWNER:
   - CORTES SEPULVEDA MARLON GIOVANNI
@@ -14,3 +13,5 @@
     - Julio.emmanuel.0504@outlook.com
   - JUAREZ LUNA MIGUEL ANGEL
     - miguel.juarez.luna13@gmail.com
+
+![IMAGEN OMAKASE](https://alba-cr-exa.cdn.mediatiquepress.com/wp-content/uploads/2026/05/imagen-3.jpg)
