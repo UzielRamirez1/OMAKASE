@@ -1,0 +1,75 @@
+SET FOREIGN_KEY_CHECKS=0;
+DROP TABLE IF EXISTS registros_horas;DROP TABLE IF EXISTS programa_profesor;
+DROP TABLE IF EXISTS alumnos;DROP TABLE IF EXISTS profesores;
+DROP TABLE IF EXISTS programas;DROP TABLE IF EXISTS usuarios;
+SET FOREIGN_KEY_CHECKS=1;
+
+CREATE TABLE usuarios(
+id BIGINT AUTO_INCREMENT PRIMARY KEY,
+username VARCHAR(50) NOT NULL UNIQUE,
+password VARCHAR(255) NOT NULL,
+rol ENUM('ADMIN','PROFESOR','ALUMNO') NOT NULL,
+activo BOOLEAN NOT NULL DEFAULT TRUE,
+fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP
+)ENGINE=InnoDB;
+
+CREATE TABLE programas(
+id BIGINT AUTO_INCREMENT PRIMARY KEY,
+nombre VARCHAR(150) NOT NULL,
+descripcion TEXT,
+estado ENUM('ACTIVO','INACTIVO','CONCLUIDO') NOT NULL DEFAULT 'ACTIVO',
+horas_requeridas INT NOT NULL DEFAULT 480,
+fecha_inicio DATE,
+fecha_fin DATE,
+fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP
+)ENGINE=InnoDB;
+
+CREATE TABLE profesores(
+id BIGINT AUTO_INCREMENT PRIMARY KEY,
+usuario_id BIGINT NOT NULL UNIQUE,
+nombre VARCHAR(100) NOT NULL,
+apellido_paterno VARCHAR(100) NOT NULL,
+apellido_materno VARCHAR(100),
+email VARCHAR(150),
+numero_empleado VARCHAR(20),
+activo BOOLEAN NOT NULL DEFAULT TRUE,
+FOREIGN KEY (usuario_id) REFERENCES usuarios(id)
+)ENGINE=InnoDB;
+
+CREATE TABLE alumnos(
+id BIGINT AUTO_INCREMENT PRIMARY KEY,
+usuario_id BIGINT NOT NULL UNIQUE,
+programa_id BIGINT,
+nombre VARCHAR(100) NOT NULL,
+apellido_paterno VARCHAR(100) NOT NULL,
+apellido_materno VARCHAR(100),
+numero_cuenta VARCHAR(20),
+email VARCHAR(150),
+horas_acumuladas DECIMAL(8,2) NOT NULL DEFAULT 0.00,
+activo BOOLEAN NOT NULL DEFAULT TRUE,
+FOREIGN KEY (usuario_id) REFERENCES usuarios(id),
+FOREIGN KEY (programa_id) REFERENCES programas(id)
+)ENGINE=InnoDB;
+
+CREATE TABLE programa_profesor(
+id BIGINT AUTO_INCREMENT PRIMARY KEY,
+programa_id BIGINT NOT NULL,
+profesor_id BIGINT NOT NULL,
+fecha_asignacion DATE DEFAULT (CURRENT_DATE),
+FOREIGN KEY (programa_id) REFERENCES programas(id),
+FOREIGN KEY (profesor_id) REFERENCES profesores(id),
+UNIQUE KEY (programa_id,profesor_id)
+)ENGINE=InnoDB;
+
+CREATE TABLE registros_horas(
+id BIGINT AUTO_INCREMENT PRIMARY KEY,
+alumno_id BIGINT NOT NULL,
+hora_entrada DATETIME NOT NULL,
+hora_salida DATETIME,
+horas_totales DECIMAL(8,2),
+modalidad ENUM('MODALIDAD_1','MODALIDAD_2') NOT NULL,
+estado ENUM('EN_CURSO','COMPLETADO') NOT NULL DEFAULT 'EN_CURSO',
+observaciones VARCHAR(500),
+fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP,
+FOREIGN KEY (alumno_id) REFERENCES alumnos(id)
+)ENGINE=InnoDB;
