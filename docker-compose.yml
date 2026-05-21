@@ -23,6 +23,12 @@ services:
       timeout: 5s
       retries: 10
 
+  frontend:
+    build: ./frontend-web
+    container_name: fes_frontend
+    restart: always
+    ports:
+      - "8081:8081"
 
     
 
