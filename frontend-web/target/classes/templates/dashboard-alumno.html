@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Dashboard Alumno — FES Aragón</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+    <link rel="stylesheet" th:href="@{/css/main.css}"/>
+</head>
+<body class="app-body">
+
+<nav class="sidebar">
+    <div class="sidebar-logo">
+        <svg viewBox="0 0 48 48" fill="none" width="36" height="36">
+            <rect width="48" height="48" rx="10" fill="#003F8A"/>
+            <path d="M12 34V20l12-8 12 8v14H28v-8h-8v8H12z" fill="white"/>
+        </svg>
+        <span>FES Aragón</span>
+    </div>
+    <div class="sidebar-user">
+        <div class="user-avatar" style="background:#6f3e9e">A</div>
+        <div>
+            <p class="user-name" th:text="${nombreCompleto}">Alumno</p>
+            <p class="user-role">ALUMNO</p>
+        </div>
+    </div>
+    <ul class="sidebar-nav">
+        <li><a href="#sec-info" class="nav-link active">📊 Mi Progreso</a></li>
+        <li><a href="#sec-horas" class="nav-link">⏱ Registrar Horas</a></li>
+        <li><a href="#sec-historial" class="nav-link">📜 Historial</a></li>
+    </ul>
+    <div class="sidebar-bottom">
+        <a href="/logout" class="btn-logout">🚪 Cerrar Sesión</a>
+    </div>
+</nav>
+
+<main class="main-content">
+    <header class="topbar">
+        <h2>Mi Panel de Servicio Social</h2>
+        <span class="topbar-date" id="currentDate"></span>
+    </header>
+
+    <!-- Info del alumno -->
+    <section id="sec-info" class="card" th:if="${alumno != null}">
+        <div class="card-header"><h3>Mi Progreso</h3></div>
+        <div class="alumno-info-grid">
+            <div class="info-item">
+                <span class="info-label">Nombre</span>
+                <span class="info-value" th:text="${alumno.nombre + ' ' + alumno.apellidoPaterno}"></span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">No. Cuenta</span>
+                <span class="info-value" th:text="${alumno.numeroCuenta}"></span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Programa</span>
+                <span class="info-value" th:text="${alumno.programa?.nombre}"></span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Horas Requeridas</span>
+                <span class="info-value" th:text="${alumno.programa?.horasRequeridas ?: 480} + ' hrs'"></span>
+            </div>
+        </div>
+        <!-- Progress -->
+        <div class="progress-section">
+            <div class="progress-info">
+                <span>Horas Acumuladas</span>
+                <span th:text="${alumno.horasAcumuladas} + ' / ' + (alumno.programa?.horasRequeridas ?: 480) + ' hrs'"></span>
+            </div>
+            <div class="progress-bar-lg">
+                <div class="progress-fill-lg"
+                     th:style="'width:' + ${#numbers.formatDecimal(alumno.horasAcumuladas / (alumno.programa?.horasRequeridas ?: 480) * 100, 1, 1)} + '%'"></div>
+            </div>
+            <span class="progress-pct"
+                  th:text="${#numbers.formatDecimal(alumno.horasAcumuladas / (alumno.programa?.horasRequeridas ?: 480) * 100, 1, 1)} + '%'"></span>
+        </div>
+    </section>
+
+    <!-- Registro de Horas -->
+    <section id="sec-horas" class="card">
+        <div class="card-header"><h3>Registrar Horas</h3></div>
+        <div class="tabs">
+            <button class="tab active" onclick="showTab('tab-m1', this)" id="btn-m1">Modalidad 1 (Completo)</button>
+            <button class="tab" onclick="showTab('tab-entrada', this)" id="btn-m2e"
+                    th:disabled="${tieneEntradaAbierta}">Modalidad 2 — Entrada</button>
+            <button class="tab" onclick="showTab('tab-salida', this)" id="btn-m2s"
+                    th:disabled="${!tieneEntradaAbierta}">Modalidad 2 — Salida</button>
+        </div>
+
+        <!-- Modalidad 1 -->
+        <div id="tab-m1" class="tab-content active">
+            <p class="tab-desc">Registra entrada y salida en una sola operación.</p>
+            <form action="/alumno/horas/modalidad1" method="post">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Hora de Entrada</label>
+                        <input type="datetime-local" name="horaEntrada" required id="m1entrada"/>
+                    </div>
+                    <div class="form-group">
+                        <label>Hora de Salida</label>
+                        <input type="datetime-local" name="horaSalida" required id="m1salida"/>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Observaciones</label>
+                    <input type="text" name="observaciones" placeholder="Opcional"/>
+                </div>
+                <button type="submit" class="btn-primary">Registrar Horas</button>
+            </form>
+        </div>
+
+        <!-- Modalidad 2 Entrada -->
+        <div id="tab-entrada" class="tab-content" style="display:none">
+            <p class="tab-desc">Registra solo la entrada. La salida se registrará después.</p>
+            <div th:if="${tieneEntradaAbierta}" class="alert alert-warning">
+                ⚠️ Ya tienes una entrada abierta. Registra la salida primero.
+            </div>
+            <form action="/alumno/horas/entrada" method="post" th:unless="${tieneEntradaAbierta}">
+                <div class="form-group">
+                    <label>Hora de Entrada</label>
+                    <input type="datetime-local" name="horaEntrada" required/>
+                </div>
+                <div class="form-group">
+                    <label>Observaciones</label>
+                    <input type="text" name="observaciones" placeholder="Opcional"/>
+                </div>
+                <button type="submit" class="btn-primary">Registrar Entrada</button>
+            </form>
+        </div>
+
+        <!-- Modalidad 2 Salida -->
+        <div id="tab-salida" class="tab-content" style="display:none">
+            <p class="tab-desc">Cierra la entrada abierta registrando la salida.</p>
+            <div th:unless="${tieneEntradaAbierta}" class="alert alert-warning">
+                ⚠️ No tienes ninguna entrada abierta.
+            </div>
+            <form action="/alumno/horas/salida" method="post" th:if="${tieneEntradaAbierta}">
+                <div class="form-group">
+                    <label>Hora de Salida</label>
+                    <input type="datetime-local" name="horaSalida" required/>
+                </div>
+                <div class="form-group">
+                    <label>Observaciones</label>
+                    <input type="text" name="observaciones" placeholder="Opcional"/>
+                </div>
+                <button type="submit" class="btn-success">Registrar Salida</button>
+            </form>
+        </div>
+    </section>
+
+    <!-- Historial -->
+    <section id="sec-historial" class="card">
+        <div class="card-header"><h3>Historial de Horas</h3></div>
+        <div class="table-wrapper">
+            <table class="data-table">
+                <thead>
+                    <tr><th>#</th><th>Entrada</th><th>Salida</th><th>Horas</th><th>Modalidad</th><th>Estado</th><th>Observaciones</th></tr>
+                </thead>
+                <tbody>
+                    <tr th:each="r, iter : ${registros}">
+                        <td th:text="${iter.count}"></td>
+                        <td th:text="${r.horaEntrada}"></td>
+                        <td th:text="${r.horaSalida ?: '—'}"></td>
+                        <td th:text="${r.horasTotales != null ? r.horasTotales + ' hrs' : '—'}"></td>
+                        <td th:text="${r.modalidad}"></td>
+                        <td>
+                            <span class="badge"
+                                  th:classappend="${r.estado == 'COMPLETADO'} ? 'badge-green' : 'badge-yellow'"
+                                  th:text="${r.estado}"></span>
+                        </td>
+                        <td th:text="${r.observaciones ?: '—'}"></td>
+                    </tr>
+                    <tr th:if="${registros == null or #lists.isEmpty(registros)}">
+                        <td colspan="7" class="text-center">Sin registros de horas</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+</main>
+
+<script>
+    document.getElementById('currentDate').textContent = new Date().toLocaleDateString('es-MX', {
+        weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+    });
+
+    function showTab(tabId, btn) {
+        document.querySelectorAll('.tab-content').forEach(t => {
+            t.style.display = 'none';
+            t.classList.remove('active');
+        });
+        document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
+        document.getElementById(tabId).style.display = 'block';
+        btn.classList.add('active');
+    }
+
+    // Setear datetime-local al momento actual por defecto
+    const now = new Date();
+    const local = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+    document.querySelectorAll('input[type="datetime-local"]').forEach(el => el.value = local);
+</script>
+</body>
+</html>
