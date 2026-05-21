@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Dashboard Profesor — FES Aragón</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+        <link rel="stylesheet" href="../static/css/main.css" th:href="@{/css/main.css}"/>
+
+</head>
+<body class="app-body">
+
+<nav class="sidebar">
+    <div class="sidebar-logo">
+        <svg viewBox="0 0 48 48" fill="none" width="36" height="36">
+            <rect width="48" height="48" rx="10" fill="#003F8A"/>
+            <path d="M12 34V20l12-8 12 8v14H28v-8h-8v8H12z" fill="white"/>
+        </svg>
+        <span>FES Aragón</span>
+    </div>
+    <div class="sidebar-user">
+        <div class="user-avatar" style="background:#1a7f4b">P</div>
+        <div>
+            <p class="user-name" th:text="${nombreCompleto}">Profesor</p>
+            <p class="user-role">PROFESOR</p>
+        </div>
+    </div>
+    <ul class="sidebar-nav">
+        <li><a href="#sec-programas" class="nav-link active">📋 Mis Programas</a></li>
+        <li><a href="#sec-alumnos" class="nav-link">👨‍🎓 Alumnos</a></li>
+    </ul>
+    <div class="sidebar-bottom">
+        <a href="/logout" class="btn-logout">🚪 Cerrar Sesión</a>
+    </div>
+</nav>
+
+<main class="main-content">
+    <header class="topbar">
+        <h2>Panel del Profesor</h2>
+        <span class="topbar-date" id="currentDate"></span>
+    </header>
+
+    <!-- KPIs -->
+    <div class="kpi-grid">
+        <div class="kpi-card">
+            <div class="kpi-icon kpi-blue">📋</div>
+            <div>
+                <p class="kpi-label">Programas Activos</p>
+                <p class="kpi-value" th:text="${programas != null ? programas.size() : 0}">0</p>
+            </div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-icon kpi-purple">👨‍🎓</div>
+            <div>
+                <p class="kpi-label">Total Alumnos</p>
+                <p class="kpi-value" th:text="${totalAlumnos}">0</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Programas -->
+    <section id="sec-programas" class="card">
+        <div class="card-header">
+            <h3>Programas de Servicio Social</h3>
+        </div>
+        <div class="table-wrapper">
+            <table class="data-table">
+                <thead>
+                    <tr><th>ID</th><th>Nombre</th><th>Estado</th><th>Horas Req.</th></tr>
+                </thead>
+                <tbody>
+                    <tr th:each="p : ${programas}">
+                        <td th:text="${p.id}"></td>
+                        <td th:text="${p.nombre}"></td>
+                        <td><span class="badge" th:classappend="${p.estado == 'ACTIVO'} ? 'badge-green' : 'badge-gray'" th:text="${p.estado}"></span></td>
+                        <td th:text="${p.horasRequeridas} + ' hrs'"></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- Alumnos -->
+    <section id="sec-alumnos" class="card">
+        <div class="card-header">
+            <h3>Alumnos Inscritos</h3>
+        </div>
+        <div class="table-wrapper">
+            <table class="data-table">
+                <thead>
+                    <tr><th>Nombre</th><th>No. Cuenta</th><th>Programa</th><th>Horas Acum.</th><th>Progreso</th></tr>
+                </thead>
+                <tbody>
+                    <tr th:each="al : ${alumnos}">
+                        <td th:text="${al.nombre + ' ' + al.apellidoPaterno}"></td>
+                        <td th:text="${al.numeroCuenta}"></td>
+                        <td th:text="${al.programa?.nombre}"></td>
+                        <td th:text="${al.horasAcumuladas} + ' / ' + (al.programa?.horasRequeridas ?: 480) + ' hrs'"></td>
+                        <td>
+                            <div class="progress-bar">
+                                <div class="progress-fill"
+                                     th:style="'width:' + (al.horasAcumuladas / (al.programa?.horasRequeridas ?: 480) * 100) + '%'"></div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(alumnos)}">
+                        <td colspan="5" class="text-center">Sin alumnos registrados</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+</main>
+
+<script>
+    document.getElementById('currentDate').textContent = new Date().toLocaleDateString('es-MX', {
+        weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+    });
+</script>
+</body>
+</html>
