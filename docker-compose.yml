@@ -12,16 +12,32 @@ services:
       MYSQL_PASSWORD: fes_pass
     ports:
       - "3306:3306"
-
     volumes:
-      
+      - mysql_data:/var/lib/mysql
       - ./mysql-init:/docker-entrypoint-initdb.d
-
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot123"]
       interval: 10s
       timeout: 5s
       retries: 10
+
+  backend:
+    build: ./backend-api
+    container_name: fes_backend
+    restart: always
+    ports:
+      - "8080:8080"
+    environment:
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_NAME: servicio_social
+      DB_USERNAME: fes_user
+      DB_PASSWORD: fes_pass
+      JWT_SECRET: FesAragonMacrodatosSecretKeyJWT2024VeryLongKey256Bits!!
+      JWT_EXPIRATION: 86400000
+    depends_on:
+      mysql:
+        condition: service_healthy
 
   frontend:
     build: ./frontend-web
@@ -29,7 +45,10 @@ services:
     restart: always
     ports:
       - "8081:8081"
+    environment:
+      BACKEND_URL: http://backend:8080
+    depends_on:
+      - backend
 
-    
-
-
+volumes:
+  mysql_data:
